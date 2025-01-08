@@ -12,21 +12,21 @@ Hlavným cieľom projektu je analyzovať užívateľské hodnotenia filmov a ide
 ### 1.2 Zdroje dát
 Dataset MovieLens obsahuje nasledujúce tabuľky:
 
-- **movies**: Táto tabuľka obsahuje základné informácie o filmoch vrátane názvu a roku vydania. Každý záznam reprezentuje jeden film.
+- ``movies``: Táto tabuľka obsahuje základné informácie o filmoch vrátane názvu a roku vydania. Každý záznam reprezentuje jeden film.
 
-- **ratings**: Zaznamenáva hodnotenia filmov, ktoré užívatelia udelili. Tieto údaje sú kľúčové pre analýzu užívateľských preferencií a vývoj odporúčacích systémov.
+- ``ratings``: Zaznamenáva hodnotenia filmov, ktoré užívatelia udelili. Tieto údaje sú kľúčové pre analýzu užívateľských preferencií a vývoj odporúčacích systémov.
 
-- **users**: Obsahuje demografické údaje o užívateľoch, ako sú vek, pohlavie, povolanie a poštové smerovacie číslo. Tieto údaje pomáhajú segmentovať užívateľov podľa ich charakteristík.
+- ``users``: Obsahuje demografické údaje o užívateľoch, ako sú vek, pohlavie, povolanie a poštové smerovacie číslo. Tieto údaje pomáhajú segmentovať užívateľov podľa ich charakteristík.
 
-- **genres**: Tabuľka s informáciami o filmových žánroch. Každý záznam reprezentuje jeden konkrétny žáner.
+- ``genres``: Tabuľka s informáciami o filmových žánroch. Každý záznam reprezentuje jeden konkrétny žáner.
 
-- **genres_movies**: Prepojovacia tabuľka medzi filmami a ich žánrami. Umožňuje priradenie viacerých žánrov k jednému filmu.
+- ``genres_movies``: Prepojovacia tabuľka medzi filmami a ich žánrami. Umožňuje priradenie viacerých žánrov k jednému filmu.
 
-- **tags**: Obsahuje tagy, ktoré užívatelia priraďujú filmom. Tagy poskytujú ďalšiu vrstvu informácií o preferenciách užívateľov a popise filmov.
+- `tags`: Obsahuje tagy, ktoré užívatelia priraďujú filmom. Tagy poskytujú ďalšiu vrstvu informácií o preferenciách užívateľov a popise filmov.
 
-- **age_group**: Obsahuje kategórie vekových skupín, ktoré sú využité na zoskupenie užívateľov podľa veku. Umožňuje analýzu trendov medzi rôznymi vekovými kategóriami.
+- ``age_group``: Obsahuje kategórie vekových skupín, ktoré sú využité na zoskupenie užívateľov podľa veku. Umožňuje analýzu trendov medzi rôznymi vekovými kategóriami.
 
-- **occupations**: Táto tabuľka obsahuje zoznam povolaní užívateľov. Pomáha identifikovať rozdiely v preferenciách medzi užívateľmi s rôznymi povolaniami.
+- ``occupations``: Táto tabuľka obsahuje zoznam povolaní užívateľov. Pomáha identifikovať rozdiely v preferenciách medzi užívateľmi s rôznymi povolaniami.
 
 ---
 
@@ -38,3 +38,51 @@ Surové dáta sú usporiadané v relačnom modeli, ktorý je znázornený na ent
 
 ![ERD Diagram](erd_schema.png)
 <div align="center"><em>Obrázok 1 - Entitno-relačná schéma MovieLens</em></div>
+
+
+## 2 Dimenzionálny model
+### 2.1 Dimenzionálny model typu hviezda
+Navrhnutý model je dimenzionálny model typu hviezda, ktorý je optimalizovaný pre analýzu hodnotení filmov. Model obsahuje jednu faktovú tabuľku a niekoľko dimenzionálnych tabuliek, ktoré podporujú analýzu užívateľských preferencií, trendov v hodnotení filmov a iných relevantných metrik.
+
+### 2.2 Faktorová tabuľka `fact_ratings`
+- **Metriky:**
+  - `rating` – Hodnotenie filmu od užívateľa.
+- **Kľúče:**
+  - `user_id` – Cudzí kľúč odkazujúci na dimenziu užívateľov.
+  - `movie_id` – Cudzí kľúč odkazujúci na dimenziu filmov.
+  - `time_id` – Cudzí kľúč odkazujúci na dimenziu času.
+  - `tags_id` - Cudzí kľúč odkazujúci na dimenziu tagov.
+  - `date_id` - Cudzí kľúč odkazujúci na dimenziu dátumu.
+  - `genre_id` - Cudzí kľúč odkazujúci na dimenziu žánrov.
+
+### 2.3 Dimenzionálne tabuľky
+#### **Dimenzia: `dim_users`**
+- **Obsah:** 
+- **Typ dimenzie:** 
+
+#### **Dimenzia: `dim_movies`**
+- **Obsah:** 
+- **Typ dimenzie:** 
+
+#### **Dimenzia: `dim_genres`**
+- **Obsah:** 
+- **Typ dimenzie:** 
+
+#### **Dimenzia: `dim_time`**
+- **Obsah:** 
+- **Typ dimenzie:** 
+
+#### **Dimenzia: `dim_date`**
+- **Obsah:** 
+- **Typ dimenzie:** 
+
+#### **Dimenzia: `dim_tags`**
+- **Obsah:** 
+- **Typ dimenzie:** 
+
+### 2.4 Vizualizácia dimenzionálneho modelu
+Štruktúra hviezdicového modelu je znázornená na diagrame nižšie. Diagram ukazuje prepojenia medzi faktovou tabuľkou a dimenziami, čo zjednodušuje pochopenie a implementáciu modelu.
+
+![Dimenzionálny model](star_schema.png)
+<div align="center"><em>Obrázok 2 Schéma hviezdy pre MovieLens</em></div>
+
