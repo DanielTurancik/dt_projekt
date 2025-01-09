@@ -86,3 +86,10 @@ Navrhnutý model je dimenzionálny model typu hviezda, ktorý je optimalizovaný
 ![Dimenzionálny model](star_schema.png)
 <div align="center"><em>Obrázok 2 Schéma hviezdy pre MovieLens</em></div>
 
+
+## 3. ETL proces v Snowflake
+### 3.1 Extract (Extrahovanie dát)
+
+### 3.2 Transform (Transformácia dát)
+
+### 3.3 Load (Načítanie dát)
