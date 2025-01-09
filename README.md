@@ -93,3 +93,91 @@ Navrhnutý model je dimenzionálny model typu hviezda, ktorý je optimalizovaný
 ### 3.2 Transform (Transformácia dát)
 
 ### 3.3 Load (Načítanie dát)
+
+
+## 4. Vizualizácia dát
+Dashboard obsahuje 5 vizualizácii. 
+![dashboard](MovieLens_dashboard.png)
+<div align="center"><em>Obrázok 3 dashboard MovieLens datasetu</em></div>
+
+___
+
+### **Graf 1**: `Počet hodnotení podľa vekových skupín`
+- **Popis: Ukazuje, ktoré vekové skupiny používateľov najviac hodnotia filmy.**
+- **SQL dotaz:**
+```sql
+SELECT 
+    u.age_group, 
+    COUNT(f.fact_rating) AS num_ratings
+FROM fact_ratings f
+JOIN dim_users u ON f.user_id = u.user_id
+GROUP BY u.age_group
+ORDER BY num_ratings DESC;
+```
+___
+### **Graf 2**: `Počet hodnotení podľa pohlavia`
+- **Popis: Porovnanie počtu hodnotení medzi mužmi a ženami**
+- **SQL dotaz:**
+```sql
+SELECT 
+    u.gender, 
+    COUNT(f.fact_rating) AS num_ratings
+FROM fact_ratings f
+JOIN dim_users u ON f.user_id = u.user_id
+GROUP BY u.gender
+ORDER BY num_ratings DESC;
+```
+___
+
+### **Graf 3**: `Obľúbenosť filmov podľa ročných období`
+- **Popis: Zobrazuje, v ktorých ročných obdobiach sa pridáva najviac hodnotení.**
+- **SQL dotaz:**
+```sql
+SELECT 
+    CASE 
+        WHEN d.month IN (12, 1, 2) THEN 'Zima'
+        WHEN d.month IN (3, 4, 5) THEN 'Jar'
+        WHEN d.month IN (6, 7, 8) THEN 'Leto'
+        WHEN d.month IN (9, 10, 11) THEN 'Jeseň'
+    END AS season,
+    COUNT(f.fact_rating) AS num_ratings
+FROM fact_ratings f
+JOIN dim_date d ON f.date_id = d.date_id
+GROUP BY season
+ORDER BY num_ratings DESC;
+```
+___
+
+### **Graf 4**: `Obľúbenosť filmov u mužov vs žien podľa žánrov`
+- **Popis: Porovnáva obľúbenosť žánrov medzi mužmi a ženami.**
+- **SQL dotaz:**
+```sql
+SELECT 
+    g.genre_name,
+    u.gender,
+    COUNT(f.fact_rating) AS num_ratings
+FROM fact_ratings f
+JOIN dim_users u ON f.user_id = u.user_id
+JOIN dim_genres g ON f.genre_id = g.genre_id
+GROUP BY g.genre_name, u.gender
+ORDER BY g.genre_name, num_ratings DESC;
+
+```
+___
+### **Graf 5**: `10 filmov s najlepším hodnotím - od najvyššieho hodnotenia`
+- **Popis: Zobrazuje 10 filmov s najvyšším priemerným hodnotením**
+- **SQL dotaz:**
+```sql
+SELECT 
+    g.genre_name, 
+    COUNT(f.fact_rating) AS num_ratings
+FROM fact_ratings f
+JOIN dim_genres g ON f.genre_id = g.genre_id
+GROUP BY g.genre_name
+ORDER BY num_ratings DESC
+LIMIT 10;
+
+```
+___
+
+**Autor:** Daniel Turančík
