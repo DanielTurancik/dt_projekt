@@ -1,8 +1,6 @@
 # ETL Proces - MovieLens
 
-Tento projekt sa zameriava na implementáciu ETL procesu pre analýzu dát zo zdrojového datasetu **MovieLens**. Analýza sa vykonáva v databázovej platforme **Snowflake** s cieľom identifikovať vzory v užívateľských hodnoteniach filmov a preferenciách na základe demografických údajov.
-
----
+Tento repozitár obsahuje implementáciu ETL procesu v Snowflake pre analýzu dát z MovieLens datasetu. Hlavným cieľom projektu je analyzovať užívateľské hodnotenia filmov a identifikovať trendy v preferenciách na základe faktorov ako sú vek, pohlavie, povolanie a žánre filmov.
 
 ## 1. Úvod a popis zdrojových dát
 
@@ -56,29 +54,29 @@ Navrhnutý model je dimenzionálny model typu hviezda, ktorý je optimalizovaný
   - `genre_id` - Cudzí kľúč odkazujúci na dimenziu žánrov.
 
 ### 2.3 Dimenzionálne tabuľky
-#### **Dimenzia: `dim_users`**
-- **Obsah:** 
-- **Typ dimenzie:** 
+#### Dimenzia `dim_users`
+- **Obsah:** Táto dimenzia obsahuje demografické údaje užívateľov, ako sú vek, pohlavie, povolanie a poštové smerovacie číslo. Pomáha identifikovať vzory v hodnoteniach na základe charakteristík užívateľov. 
+- **Typ dimenzie:** SCD typu 2 (sledovanie historických zmien, napr. zmena povolania užívateľa).
 
-#### **Dimenzia: `dim_movies`**
-- **Obsah:** 
-- **Typ dimenzie:** 
+#### Dimenzia `dim_movies`
+- **Obsah:** Obsahuje informácie o filmoch, ako je názov filmu, rok vydania a unikátne ID. Táto dimenzia umožňuje zoskupovať hodnotenia podľa jednotlivých filmov.
+- **Typ dimenzie:** SCD typu 1 (hodnoty sa neaktualizujú, keďže filmy majú statické údaje).
 
-#### **Dimenzia: `dim_genres`**
-- **Obsah:** 
-- **Typ dimenzie:** 
+#### Dimenzia `dim_genres`
+- **Obsah:** Táto dimenzia obsahuje názvy žánrov, ktoré charakterizujú filmy. Podporuje analýzy preferencií na základe filmových žánrov.
+- **Typ dimenzie:** SCD typu 1 (žánre sú statické a nemenia sa).
 
-#### **Dimenzia: `dim_time`**
-- **Obsah:** 
-- **Typ dimenzie:** 
+#### Dimenzia `dim_time`
+- **Obsah:** Obsahuje časové údaje, ako sú hodiny, minúty a sekundy, ktoré umožňujú analyzovať časové vzory v hodnoteniach.
+- **Typ dimenzie:** SCD typu 1 (údaje sú nemenné).
 
-#### **Dimenzia: `dim_date`**
-- **Obsah:** 
-- **Typ dimenzie:** 
+#### Dimenzia `dim_date`
+- **Obsah:** Obsahuje dátumové údaje vrátane dňa, mesiaca, týždňa, štvrťroka a roku. Táto dimenzia umožňuje analýzy na základe kalendárnych vzorov.
+- **Typ dimenzie:** SCD typu 1 (údaje sú nemenné).
 
-#### **Dimenzia: `dim_tags`**
-- **Obsah:** 
-- **Typ dimenzie:** 
+#### Dimenzia `dim_tags`
+- **Obsah:** Obsahuje tagy, ktoré užívatelia priraďujú filmom, čím poskytuje ďalšiu úroveň detailu o obsahu a preferenciách.
+- **Typ dimenzie:** SCD typu 1 (údaje sú nemenné)
 
 ### 2.4 Vizualizácia dimenzionálneho modelu
 Štruktúra hviezdicového modelu je znázornená na diagrame nižšie. Diagram ukazuje prepojenia medzi faktovou tabuľkou a dimenziami, čo zjednodušuje pochopenie a implementáciu modelu.
@@ -89,10 +87,37 @@ Navrhnutý model je dimenzionálny model typu hviezda, ktorý je optimalizovaný
 
 ## 3. ETL proces v Snowflake
 ### 3.1 Extract (Extrahovanie dát)
+Dáta zo zdrojového datasetu (vo formáte .csv) boli najprv nahrané do Snowflake pomocou interného stage úložiska nazvaného my_stage. Stage v Snowflake slúži ako dočasné úložisko na import a export dát. Vytvorenie stage bolo realizované pomocou nasledujúceho príkazu:
+```sql
+CREATE OR REPLACE STAGE my_stage;
+```
+
+Do stage boli nahraté súbory, ktoré obsahujú údaje o filmoch, používateľoch, hodnoteniach, zamestnaniach, vekových kategóriách, žánroch a tagoch. Dáta boli načítané do staging tabuliek použitím príkazu COPY INTO. Tento príkaz bol použitý pre každú tabuľku.
+```sql
+COPY INTO ratings_staging
+FROM @my_stage/ratings.csv
+FILE_FORMAT = (TYPE = 'CSV', FIELD_OPTIONALLY_ENCLOSED_BY = '"', SKIP_HEADER = 1);
+```
+
+--- 
+
 
 ### 3.2 Transform (Transformácia dát)
 
 ### 3.3 Load (Načítanie dát)
+Po úspešnom vytvorení dimenzií a faktovej tabuľky boli dáta načítané do konečného formátu. Staging tabuľky boli následne vymazané, aby sa optimalizovalo využitie úložiska.
+
+Vymazanie staging tabuliek:
+```sql
+DROP TABLE IF EXISTS age_groups_staging;
+DROP TABLE IF EXISTS movie_genres_staging;
+DROP TABLE IF EXISTS movie_genre_relationship_staging;
+DROP TABLE IF EXISTS movies_staging;
+DROP TABLE IF EXISTS occupations_staging;
+DROP TABLE IF EXISTS ratings_staging;
+DROP TABLE IF EXISTS tags_staging;
+DROP TABLE IF EXISTS users_staging;
+```
 
 
 ## 4. Vizualizácia dát
