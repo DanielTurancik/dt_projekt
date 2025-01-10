@@ -103,6 +103,105 @@ FILE_FORMAT = (TYPE = 'CSV', FIELD_OPTIONALLY_ENCLOSED_BY = '"', SKIP_HEADER = 1
 
 
 ### 3.2 Transform (Transformácia dát)
+Transformačná fáza zahŕňa vytvorenie dimenzionálnych tabuliek a faktovej tabuľky.  
+### Dimenzionálne tabuľky:
+**dim_users** - Obsahuje údaje o užívateľoch, ako sú ID, pohlavie, vek a vekové skupiny.
+```sql
+CREATE OR REPLACE TABLE dim_users AS
+SELECT DISTINCT
+    id AS user_id,
+    gender,
+    occupation_id AS occupation,
+    age,
+    CASE
+        WHEN age BETWEEN 0 AND 12 THEN 'Child'
+        WHEN age BETWEEN 13 AND 19 THEN 'Teen'
+        WHEN age BETWEEN 20 AND 35 THEN 'Young Adult'
+        WHEN age BETWEEN 36 AND 55 THEN 'Adult'
+        ELSE 'Senior'
+    END AS age_group,
+    zip_code
+FROM users_staging;
+```
+**dim_genres** - Obsahuje informácie o žánroch.
+```sql
+CREATE OR REPLACE TABLE dim_genres AS
+SELECT DISTINCT
+    id AS genre_id,
+    name AS genre_name
+FROM movie_genres_staging;
+
+```
+**dim_movies** - Obsahuje informácie o filmoch.
+```sql
+CREATE OR REPLACE TABLE dim_movies AS
+SELECT DISTINCT
+    id AS movie_id,
+    title,
+    CAST(release_year AS STRING) AS release_year
+FROM movies_staging;
+```
+**dim_time** - Uchováva časové údaje z hodnotení.
+```sql
+CREATE OR REPLACE TABLE dim_time AS
+SELECT DISTINCT
+    CAST(EXTRACT(HOUR FROM rated_at) AS INT) AS time_id,
+    CAST(rated_at AS TIME) AS timestamp_time,
+    EXTRACT(HOUR FROM rated_at) AS hour,
+    CASE
+        WHEN EXTRACT(HOUR FROM rated_at) < 12 THEN 'AM'
+        ELSE 'PM'
+    END AS ampm
+FROM ratings_staging;
+
+```
+**dim_date** - Uchováva dátumy a časové intervaly.
+```sql
+CREATE OR REPLACE TABLE dim_date AS
+SELECT DISTINCT
+    CAST(EXTRACT(DAY FROM rated_at) AS INT) AS date_id,
+    CAST(rated_at AS DATE) AS timestamp_date,
+    EXTRACT(DAY FROM rated_at) AS day,
+    EXTRACT(MONTH FROM rated_at) AS month,
+    EXTRACT(YEAR FROM rated_at) AS year,
+    EXTRACT(WEEK FROM rated_at) AS week,
+    CASE
+        WHEN EXTRACT(MONTH FROM rated_at) BETWEEN 1 AND 3 THEN 1
+        WHEN EXTRACT(MONTH FROM rated_at) BETWEEN 4 AND 6 THEN 2
+        WHEN EXTRACT(MONTH FROM rated_at) BETWEEN 7 AND 9 THEN 3
+        ELSE 4
+    END AS quarter
+FROM ratings_staging;
+```
+**dim_tags** - Uchováva informácie o tagoch.
+```sql
+CREATE OR REPLACE TABLE dim_tags AS
+SELECT DISTINCT
+    id AS tags_id,
+    tags,
+    created_at
+FROM tags_staging;
+```
+### Faktová tabuľka:
+Obsahuje všetky kľúčové prepojenia medzi dimenziami a faktické údaje o hodnoteniach.
+```sql
+CREATE OR REPLACE TABLE fact_ratings AS
+SELECT DISTINCT
+    r.id AS fact_rating,
+    r.rating,
+    r.user_id,
+    r.movie_id,
+    t.time_id,
+    d.date_id,
+    tg.id AS tags_id,
+    mgr.genre_id
+FROM ratings_staging r
+LEFT JOIN dim_time t ON EXTRACT(HOUR FROM r.rated_at) = t.time_id
+LEFT JOIN dim_date d ON CAST(r.rated_at AS DATE) = d.timestamp_date
+LEFT JOIN tags_staging tg ON r.movie_id = tg.movie_id AND r.user_id = tg.user_id
+LEFT JOIN movie_genre_relationship_staging mgr ON r.movie_id = mgr.movie_id;
+```
+
 
 ### 3.3 Load (Načítanie dát)
 Po úspešnom vytvorení dimenzií a faktovej tabuľky boli dáta načítané do konečného formátu. Staging tabuľky boli následne vymazané, aby sa optimalizovalo využitie úložiska.
@@ -141,7 +240,7 @@ ORDER BY num_ratings DESC;
 ```
 ___
 ### **Graf 2**: `Počet hodnotení podľa pohlavia`
-- **Popis: Porovnanie počtu hodnotení medzi mužmi a ženami**
+- **Popis: Porovnanie počtu hodnotení medzi mužmi a ženami.**
 - **SQL dotaz:**
 ```sql
 SELECT 
@@ -190,7 +289,7 @@ ORDER BY g.genre_name, num_ratings DESC;
 ```
 ___
 ### **Graf 5**: `10 filmov s najlepším hodnotím - od najvyššieho hodnotenia`
-- **Popis: Zobrazuje 10 filmov s najvyšším priemerným hodnotením**
+- **Popis: Zobrazuje 10 filmov s najvyšším priemerným hodnotením.**
 - **SQL dotaz:**
 ```sql
 SELECT 
